@@ -34,16 +34,18 @@
                  KeyDown="ShipInput_KeyDown"/>
 
         <DataGrid x:Name="ReceiveGrid" Grid.Column="0" Grid.Row="2" Margin="10" 
-                  AutoGenerateColumns="False">
+                  AutoGenerateColumns="False" CellEditEnding="ReceiveGrid_CellEditEnding">
             <DataGrid.Columns>
+                <DataGridTextColumn Width="2*" Header="Идентификатор" Binding="{Binding Id}" />
                 <DataGridTextColumn Width="2*" Header="Наименование" Binding="{Binding Name}" />
                 <DataGridTextColumn Width="*" Header="Количество" Binding="{Binding Quantity}" />
             </DataGrid.Columns>
         </DataGrid>
 
         <DataGrid x:Name="ShipGrid" Grid.Column="1" Grid.Row="2" Margin="10" 
-                  AutoGenerateColumns="False">
+                  AutoGenerateColumns="False" CellEditEnding="ShipGrid_CellEditEnding">
             <DataGrid.Columns>
+                <DataGridTextColumn Width="2*" Header="Идентификатор" Binding="{Binding Id}" />
                 <DataGridTextColumn Width="2*" Header="Наименование" Binding="{Binding Name}" />
                 <DataGridTextColumn Width="*" Header="Количество" Binding="{Binding Quantity}" />
             </DataGrid.Columns>
@@ -60,5 +62,3 @@
                 Click="SaveButton_Click"/>
     </Grid>
 </Window>
-
-    
