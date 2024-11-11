@@ -13,3 +13,4 @@ namespace InventoryManagementApp
         public int Quantity { get; set; }
     }
 }
+

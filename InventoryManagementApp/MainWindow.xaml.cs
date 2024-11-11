@@ -8,13 +8,25 @@ namespace InventoryManagementApp
 {
     public partial class MainWindow : Window
     {
+        private Dictionary<string, InventoryItem> items = new Dictionary<string, InventoryItem>();
         private Dictionary<string, InventoryItem> receiveDict = new Dictionary<string, InventoryItem>();
         private Dictionary<string, InventoryItem> shipDict = new Dictionary<string, InventoryItem>();
 
         public MainWindow()
         {
             InitializeComponent();
+            LoadData();
             UpdateTables();
+        }
+        // Справочник номенклатуры
+        private void LoadData()
+        {
+            items["304DB75F196000180001C13A"] = new InventoryItem { Id = "304DB75F196000180001C13A", Name = "Объект 1", Quantity = 0 };
+            items["304DB75F196000180001C13B"] = new InventoryItem { Id = "304DB75F196000180001C13B", Name = "Объект 2", Quantity = 0 };
+            items["304DB75F196000180001C13C"] = new InventoryItem { Id = "304DB75F196000180001C13C", Name = "Объект 3", Quantity = 0 };
+            items["304DB75F196000180001C13D"] = new InventoryItem { Id = "304DB75F196000180001C13D", Name = "Объект 3", Quantity = 0 };
+            items["304DB75F196000180001C13E"] = new InventoryItem { Id = "304DB75F196000180001C13E", Name = "Объект 4", Quantity = 0 };
+            items["304DB75F196000180001C13F"] = new InventoryItem { Id = "304DB75F196000180001C13F", Name = "Объект 1", Quantity = 0 };
         }
 
         private void ReceiveInput_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -37,10 +49,7 @@ namespace InventoryManagementApp
 
         private void ProcessInput(string input, Dictionary<string, InventoryItem> addDict, Dictionary<string, InventoryItem> removeDict)
         {
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return;
-            }
+            if (string.IsNullOrWhiteSpace(input)) return;
 
             var ids = input.ToUpper().Split(' ');
 
@@ -52,35 +61,25 @@ namespace InventoryManagementApp
                     continue;
                 }
 
-                InventoryItem item;
-
-                if (!addDict.TryGetValue(id, out item))
+                if (!items.TryGetValue(id, out InventoryItem item))
                 {
-                    if (removeDict.TryGetValue(id, out InventoryItem removeItem))
-                    {
-                        item = new InventoryItem
-                        {
-                            Id = removeItem.Id,
-                            Name = removeItem.Name,
-                            Quantity = 1
-                        };
-                        addDict[id] = item;
-                    }
-                    else
-                    {
-                        item = new InventoryItem { Id = id, Name = $"Наименование для {id}", Quantity = 1 };
-                        addDict[id] = item;
-                    }
+                    MessageBox.Show($"Идентификатор {id} отсутствует в справочнике.");
+                    continue;
+                }
+
+                if (!addDict.TryGetValue(id, out InventoryItem existingItem))
+                {
+                    addDict[id] = new InventoryItem { Id = item.Id, Name = item.Name, Quantity = 1 };
                 }
                 else
                 {
-                    item.Quantity++;
+                    existingItem.Quantity++;
                 }
 
-                if (removeDict.TryGetValue(id, out InventoryItem removeItemToUpdate))
+                if (removeDict.TryGetValue(id, out InventoryItem removeItem))
                 {
-                    removeItemToUpdate.Quantity--;
-                    if (removeItemToUpdate.Quantity <= 0)
+                    removeItem.Quantity--;
+                    if (removeItem.Quantity <= 0)
                     {
                         removeDict.Remove(id);
                     }
@@ -90,39 +89,9 @@ namespace InventoryManagementApp
             UpdateTables();
         }
 
-        private void ReceiveGrid_CellEditEnding(object sender, System.Windows.Controls.DataGridCellEditEndingEventArgs e)
-        {
-            if (e.Column.Header.ToString() == "Наименование")
-            {
-                if (e.Row.Item is InventoryItem item)
-                {
-                    if (receiveDict.ContainsKey(item.Id))
-                    {
-                        receiveDict[item.Id].Name = ((System.Windows.Controls.TextBox)e.EditingElement).Text;
-                    }
-                }
-            }
-            UpdateTables();
-        }
-
-        private void ShipGrid_CellEditEnding(object sender, System.Windows.Controls.DataGridCellEditEndingEventArgs e)
-        {
-            if (e.Column.Header.ToString() == "Наименование")
-            {
-                if (e.Row.Item is InventoryItem item)
-                {
-                    if (shipDict.ContainsKey(item.Id))
-                    {
-                        shipDict[item.Id].Name = ((System.Windows.Controls.TextBox)e.EditingElement).Text;
-                    }
-                }
-            }
-            UpdateTables();
-        }
-
         private bool IsValidHex(string id)
         {
-            return id.Length == 24 && id.All(c => Uri.IsHexDigit(c));
+            return id.Length == 24 && id.All(Uri.IsHexDigit);
         }
 
         private void UpdateTables()
@@ -160,14 +129,8 @@ namespace InventoryManagementApp
         {
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                writer.WriteLine("Прием");
-                foreach (var item in receiveDict.Values)
-                {
-                    writer.WriteLine($"{item.Id},{item.Name},{item.Quantity}");
-                }
-
-                writer.WriteLine("Отгрузка");
-                foreach (var item in shipDict.Values)
+                writer.WriteLine("Справочник номенклатуры:");
+                foreach (var item in items.Values)
                 {
                     writer.WriteLine($"{item.Id},{item.Name},{item.Quantity}");
                 }
@@ -178,7 +141,7 @@ namespace InventoryManagementApp
         {
             Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog
             {
-                FileName = "InventoryData",
+                FileName = "InventoryDictionary",
                 DefaultExt = ".txt",
                 Filter = "Text documents (.txt)|*.txt"
             };
